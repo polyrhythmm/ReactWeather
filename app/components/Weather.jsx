@@ -2,12 +2,15 @@ var React = require('react');
 var WeatherForm = require('WeatherForm');
 var WeatherMessage = require('WeatherMessage');
 var openWeatherMap = require('openWeatherMap')
+var ErrorModal = require('ErrorModal');
+
 
 var Weather = React.createClass({
 
   getInitialState: function() {
     return {
-      isLoading: false
+      isLoading: false,
+      errorMessage: undefined
     }
   },
 
@@ -15,7 +18,8 @@ var Weather = React.createClass({
     var that = this;
 
     this.setState({
-      isLoading: true
+      isLoading: true,
+      errorMessage: undefined
     })
 
     openWeatherMap.getTemp(location).then(function(temp) {
@@ -24,37 +28,51 @@ var Weather = React.createClass({
           temp: temp,
           isLoading: false
         })
-    }, function(errorMessage) {
+    }, function(e) {
       that.setState({
         isLoading: false,
+        errorMessage: e.message,
         location: null,
         temp: null
       });
-        alert(errorMessage);
+        //alert(e.message);
     });
 
   },
 
   render: function() {
 
-      var {isLoading, location, temp} = this.state;
+      var {isLoading, location, temp, errorMessage} = this.state;
 
       function renderMessage()
       {
         if(isLoading)
         {
-          return <h3>Fetching weather...</h3>;
+          return <h3 className="text-center">Fetching weather...</h3>;
 
         } else if(typeof temp !== 'undefined' && temp !== null && typeof location !== 'undefined' && location !== null)
         {
           return <WeatherMessage location={location} temp={temp}/>
         }
       }
+
+      function renderError()
+      {
+        if(typeof errorMessage === "string")
+        {
+          console.log("renderError");
+          return (
+            <ErrorModal message={errorMessage}/>
+          )
+        }
+      }
+
       return (
         <div>
-          <h3>Get Weather</h3>
+          <h1 className="text-center">Get Weather</h1>
           <WeatherForm onSearch={this.handleSearch}/>
           {renderMessage()}
+          {renderError()}
         </div>
     );
   }
